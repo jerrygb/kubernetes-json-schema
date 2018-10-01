@@ -7,9 +7,10 @@
 #   X.Y.Z-standalone - de-referenced schemas, more useful as standalone documents
 #   X.Y.Z-local - relative references, useful to avoid the network dependency
 
-REPO="garethr/kubernetes-json-schema"
+REPO="jerrygb/kubernetes-json-schema"
 
 declare -a arr=(master
+                v1.10.8
                 v1.10.4
                 v1.10.3
                 v1.10.2
@@ -83,8 +84,14 @@ for version in "${arr[@]}"
 do
     schema=https://raw.githubusercontent.com/kubernetes/kubernetes/${version}/api/openapi-spec/swagger.json
     prefix=https://raw.githubusercontent.com/${REPO}/master/${version}/_definitions.json
+    if [[ ! -e "${version}-standalone" ]]; then
+        openapi2jsonschema -o "${version}-standalone" --kubernetes --stand-alone "${schema}"
+    fi
+    if [[ ! -e "${version}-local" ]]; then
+        openapi2jsonschema -o "${version}-local" --kubernetes "${schema}"
+    fi
 
-    openapi2jsonschema -o "${version}-standalone" --kubernetes --stand-alone "${schema}"
-    openapi2jsonschema -o "${version}-local" --kubernetes "${schema}"
-    openapi2jsonschema -o "${version}" --kubernetes --prefix "${prefix}" "${schema}"
+    if [[ ! -e "${version}" ]]; then
+        openapi2jsonschema -o "${version}" --kubernetes --prefix "${prefix}" "${schema}"
+    fi
 done
